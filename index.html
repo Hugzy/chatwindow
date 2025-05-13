@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chatroom</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #1e1e1e;
+      color: #d1d5db;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .chat-wrapper {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .chat-header {
+      padding: 16px;
+      font-size: 1.25rem;
+      font-weight: bold;
+      background-color: #202123;
+      border-bottom: 1px solid #3f3f46;
+      color: #fff;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background-color: #343541;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background-color: #2f81f7;
+      color: white;
+    }
+
+    .message.bot {
+      align-self: flex-start;
+      background-color: #444654;
+      color: #e5e7eb;
+    }
+
+    .chat-input {
+      display: flex;
+      padding: 16px;
+      background-color: #202123;
+      border-top: 1px solid #3f3f46;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 12px;
+      font-size: 1rem;
+      background-color: #40414f;
+      color: white;
+      border: 1px solid #555;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    #sendButton {
+      margin-left: 12px;
+      padding: 12px 20px;
+      background-color: #2f81f7;
+      color: white;
+      font-size: 1rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    #sendButton:hover {
+      background-color: #1a73e8;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-wrapper">
+    <div class="chat-header">Chatroom</div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="chat-input">
+      <input type="text" id="messageInput" placeholder="Send a message..." />
+      <button id="sendButton">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const sendButton = document.getElementById('sendButton');
+
+    const room = 'default';
+    const socket = new WebSocket(`ws://localhost:8000/connect/default`);
+
+    socket.onmessage = function(event) {
+      const msg = document.createElement('div');
+      msg.className = 'message bot';
+      msg.textContent = event.data;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    };
+
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      if (message !== '') {
+        socket.send(message);
+
+        const userMsg = document.createElement('div');
+        userMsg.className = 'message user';
+        userMsg.textContent = message;
+        chatMessages.appendChild(userMsg);
+
+        messageInput.value = '';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+    }
+
+    sendButton.onclick = sendMessage;
+    messageInput.addEventListener('keydown', function(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+    });
+  </script>
+</body>
+</html>
